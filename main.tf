@@ -199,15 +199,3 @@ resource "cloudflare_record" "verification_bing" {
   value   = "verify.bing.com"
   zone_id = var.zone_id
 }
-
-
-// TEST DNS records
-resource "cloudflare_record" "test_txt" {
-  comment = "TEST DNS Records"
-  name    = "maheshrijal.com"
-  proxied = false
-  ttl     = 1
-  type    = "TXT"
-  value   = "HelloWorld"
-  zone_id = var.zone_id
-}

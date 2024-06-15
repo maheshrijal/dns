@@ -188,6 +188,16 @@ resource "cloudflare_record" "verification_googleconsole" {
   zone_id = var.zone_id
 }
 
+resource "cloudflare_record" "verification_ahrefs" {
+  comment = "ahrefs domain verification"
+  name    = "maheshrijal.com"
+  proxied = false
+  ttl     = 1
+  type    = "TXT"
+  value   = "ahrefs-site-verification_a1f89ffb3f52da275864a2fa7e442b845082cde2416923c58e6f0e98a2975870"
+  zone_id = var.zone_id
+}
+
 // CNAME verification records
 
 resource "cloudflare_record" "verification_bing" {

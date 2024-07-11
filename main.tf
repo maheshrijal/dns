@@ -174,7 +174,7 @@ resource "cloudflare_record" "verification_keybase" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "keybase-site-verification=RgO1snGgvwJ6VVhGAH_KVR4Xhx-ssKJGjpCUhIfrFPQ"
+  value   = "keybase-site-verification=mj0GohFjNK5FVmz_yyogO7fAMR_HD1NjvzTNSdibiNQ"
   zone_id = var.zone_id
 }
 

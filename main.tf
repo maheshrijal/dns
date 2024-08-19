@@ -8,7 +8,7 @@ resource "cloudflare_record" "pagerules_ipv4" {
   proxied = true
   ttl     = 1
   type    = "A"
-  value   = "192.0.2.1"
+  content   = "192.0.2.1"
   zone_id = var.zone_id
 }
 
@@ -18,7 +18,7 @@ resource "cloudflare_record" "pagerules_ipv6" {
   proxied = true
   ttl     = 1
   type    = "AAAA"
-  value   = "100::"
+  content   = "100::"
   zone_id = var.zone_id
 }
 
@@ -31,7 +31,7 @@ resource "cloudflare_record" "storage_r2bucket" {
   proxied = true
   ttl     = 1
   type    = "CNAME"
-  value   = "public.r2.dev"
+  content   = "public.r2.dev"
   zone_id = var.zone_id
 }
 
@@ -40,7 +40,7 @@ resource "cloudflare_record" "website_links" {
   proxied = true
   ttl     = 1
   type    = "CNAME"
-  value   = "maheshrjl-me.pages.dev"
+  content   = "maheshrjl-me.pages.dev"
   zone_id = var.zone_id
 }
 
@@ -49,7 +49,7 @@ resource "cloudflare_record" "subdomain_pages" {
   proxied = true
   ttl     = 1
   type    = "CNAME"
-  value   = "maheshrijal.pages.dev"
+  content   = "maheshrijal.pages.dev"
   zone_id = var.zone_id
 }
 
@@ -58,7 +58,7 @@ resource "cloudflare_record" "subdomain_notes" {
   proxied = true
   ttl     = 1
   type    = "CNAME"
-  value   = "notes-90u.pages.dev"
+  content   = "notes-90u.pages.dev"
   zone_id = var.zone_id
 }
 
@@ -67,7 +67,7 @@ resource "cloudflare_record" "subdomain_offset" {
   proxied = true
   ttl     = 1
   type    = "CNAME"
-  value   = "port-offset-calculator.pages.dev"
+  content   = "port-offset-calculator.pages.dev"
   zone_id = var.zone_id
 }
 
@@ -77,7 +77,7 @@ resource "cloudflare_record" "subdomain_status" {
   proxied = false
   ttl     = 1
   type    = "CNAME"
-  value   = "statuspage.betteruptime.com"
+  content   = "statuspage.betteruptime.com"
   zone_id = var.zone_id
 }
 
@@ -91,7 +91,7 @@ resource "cloudflare_record" "mail_zoho1" {
   proxied  = false
   ttl      = 1
   type     = "MX"
-  value    = "mx3.zoho.in"
+  content    = "mx3.zoho.in"
   zone_id  = var.zone_id
 }
 
@@ -101,7 +101,7 @@ resource "cloudflare_record" "mail_zoho2" {
   proxied  = false
   ttl      = 1
   type     = "MX"
-  value    = "mx2.zoho.in"
+  content    = "mx2.zoho.in"
   zone_id  = var.zone_id
 }
 
@@ -111,7 +111,7 @@ resource "cloudflare_record" "mail_zoho3" {
   proxied  = false
   ttl      = 1
   type     = "MX"
-  value    = "mx.zoho.in"
+  content    = "mx.zoho.in"
   zone_id  = var.zone_id
 }
 
@@ -120,7 +120,7 @@ resource "cloudflare_record" "mail_dmarc" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "v=DMARC1; p=quarantine; rua=mailto:fall-bogus-chain@duck.com; ruf=mailto:cage-retrace-dealt@duck.com; sp=quarantine; adkim=r; aspf=r; pct=70"
+  content   = "v=DMARC1; p=quarantine; rua=mailto:fall-bogus-chain@duck.com; ruf=mailto:cage-retrace-dealt@duck.com; sp=quarantine; adkim=r; aspf=r; pct=70"
   zone_id = var.zone_id
 }
 
@@ -130,7 +130,7 @@ resource "cloudflare_record" "verification_spf" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "v=spf1 include:zoho.in ~all"
+  content   = "v=spf1 include:zoho.in ~all"
   zone_id = var.zone_id
 }
 
@@ -140,7 +140,7 @@ resource "cloudflare_record" "verification_dkim" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCkzTcB30wYAkbx4bdb4T4yXlXSxPERykGXJegNpq2KlkuRmLCi90E0xR/nclAsxZdwRez/XiGFmH3NmCAZinpqBNYNtyC9/CL7GlZHLld1uvylk89+xmmf1Jk4HPTaGFWdurUMOB2r63KdCRMUJDAXeaQfOEA93yjn63VM9p/kMwIDAQAB"
+  content   = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCkzTcB30wYAkbx4bdb4T4yXlXSxPERykGXJegNpq2KlkuRmLCi90E0xR/nclAsxZdwRez/XiGFmH3NmCAZinpqBNYNtyC9/CL7GlZHLld1uvylk89+xmmf1Jk4HPTaGFWdurUMOB2r63KdCRMUJDAXeaQfOEA93yjn63VM9p/kMwIDAQAB"
   zone_id = var.zone_id
 }
 
@@ -154,7 +154,7 @@ resource "cloudflare_record" "verification_githubpages" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "21a2950b136be73fc6e790f2cc5f3a"
+  content   = "21a2950b136be73fc6e790f2cc5f3a"
   zone_id = var.zone_id
 }
 
@@ -164,7 +164,7 @@ resource "cloudflare_record" "verification_zoho" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "zoho-verification=zb96135528.zmverify.zoho.in"
+  content   = "zoho-verification=zb96135528.zmverify.zoho.in"
   zone_id = var.zone_id
 }
 
@@ -174,7 +174,7 @@ resource "cloudflare_record" "verification_keybase" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "keybase-site-verification=mj0GohFjNK5FVmz_yyogO7fAMR_HD1NjvzTNSdibiNQ"
+  content   = "keybase-site-verification=mj0GohFjNK5FVmz_yyogO7fAMR_HD1NjvzTNSdibiNQ"
   zone_id = var.zone_id
 }
 
@@ -184,7 +184,7 @@ resource "cloudflare_record" "verification_googleconsole" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "google-site-verification=_6l2UIXO8ulq1jAyvMnbNmAUZNGZtaqk3yA2GbS4PeA"
+  content   = "google-site-verification=_6l2UIXO8ulq1jAyvMnbNmAUZNGZtaqk3yA2GbS4PeA"
   zone_id = var.zone_id
 }
 
@@ -194,7 +194,7 @@ resource "cloudflare_record" "verification_ahrefs" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "ahrefs-site-verification_a1f89ffb3f52da275864a2fa7e442b845082cde2416923c58e6f0e98a2975870"
+  content   = "ahrefs-site-verification_a1f89ffb3f52da275864a2fa7e442b845082cde2416923c58e6f0e98a2975870"
   zone_id = var.zone_id
 }
 
@@ -206,6 +206,6 @@ resource "cloudflare_record" "verification_bing" {
   proxied = false
   ttl     = 1
   type    = "CNAME"
-  value   = "verify.bing.com"
+  content   = "verify.bing.com"
   zone_id = var.zone_id
 }

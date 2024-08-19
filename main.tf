@@ -120,7 +120,7 @@ resource "cloudflare_record" "mail_dmarc" {
   proxied = false
   ttl     = 1
   type    = "TXT"
-  value   = "v=DMARC1; p=none; rua=mailto:8d1bb48ea66c42e0b40ca19755644ad0@dmarc-reports.cloudflare.net; ruf=mailto:8d1bb48ea66c42e0b40ca19755644ad0@dmarc-reports.cloudflare.net; sp=none; adkim=r; aspf=r; pct=100"
+  value   = "v=DMARC1; p=quarantine; rua=mailto:fall-bogus-chain@duck.com; ruf=mailto:cage-retrace-dealt@duck.com; sp=quarantine; adkim=r; aspf=r; pct=70"
   zone_id = var.zone_id
 }
 

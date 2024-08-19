@@ -37,7 +37,7 @@ jobs:
         run: terraform plan -out .planfile
 
       - name: Post PR comment
-        uses: borchero/terraform-plan-comment@v1
+        uses: borchero/terraform-plan-comment@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           planfile: .planfile

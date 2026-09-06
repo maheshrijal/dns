@@ -1,11 +1,24 @@
-# This file is maintained automatically by "terraform init".
+# This file is maintained automatically by "tofu init".
 # Manual edits may be lost in future updates.
 
-provider "registry.terraform.io/cloudflare/cloudflare" {
+provider "registry.opentofu.org/cloudflare/cloudflare" {
   version     = "4.39.0"
   constraints = "4.39.0"
   hashes = [
+    "h1:2rsYso7NQLmd7QjZpoiwY+8EtYzfldBwpY63kqha7/o=",
+    "h1:BgfIYM2NoinTU3ppHIHYTIS2MeICjKnu5ZSeoO89dlo=",
+    "h1:EB0dUSYKWASdK/zupo21CfEu6xA8STFagFW5ExVQFF0=",
+    "h1:IGNEz+uPE8Re3Okcb1HFwye3qUS07v39FVXmaV+R1LI=",
+    "h1:IT3qvpsrlVhMLxdTHxwRuBHMzLPap37OiE5XBoBuLiU=",
+    "h1:JSM3hp73J8Jnj71zhyTd8Jv406pCiNh6qRdEiWfsQJ0=",
+    "h1:N5OXYk9cbn7hqHELvYFNrU6dJV1guTy1Inh/KUOV1ok=",
+    "h1:SbmpPpl6Qhx+lgQt7Z0iF5KEYjcqUILEui+sv1fac70=",
+    "h1:TPmpzmGOOJ22O1m6MHJtvcZxhQngusw0TEkKmMmBNTU=",
+    "h1:c0hPc0U5fOMXvCoIj5KtpdV6GrAZ9E8JxgepxZo21Tg=",
+    "h1:kzs82CnFEGN0OrJNayg2kz1CCj0MnjbkAWmUBihyZzs=",
     "h1:q4K8xlm8rmcPDLMyQaxa45RDDsmeL6kGJM0p/cX6cLQ=",
+    "h1:t8rlR5XZaHuo61XJr9JWZGzGtAUOK/chGBjfyglKMKk=",
+    "h1:w0H0L0EIAkWPV8FE8YmI4I/KfS42EeKmy/ZoEJOHICw=",
     "zh:094cb548287b851a207520a87cebf5cdb5d704e6be36beb39630aa1915f943a4",
     "zh:0c2ec52ac501640e8585388b0c17b9b0ef79226703069c68c19ba1f2ed87338e",
     "zh:191fc345dc2f73e7cee4af5065691f5fda2ca7060d4a1c53ac1b2158164829e6",

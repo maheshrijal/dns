@@ -1,0 +1,145 @@
+name: DNS
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: Domain to plan or apply
+        type: choice
+        options: [maheshrijal.com, mrjl.dev]
+        required: true
+      operation:
+        description: Plan first; apply requires an approved fingerprint
+        type: choice
+        options: [plan, apply]
+        default: plan
+        required: true
+      fingerprint:
+        description: Fingerprint from a reviewed plan at this commit (required for apply)
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: 'true'
+  TF_INPUT: 'false'
+  AWS_REGION: auto
+  AWS_EC2_METADATA_DISABLED: 'true'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        domain: [maheshrijal.com, mrjl.dev]
+    defaults:
+      run:
+        working-directory: domains/${{ matrix.domain }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
+        with:
+          tofu_version: 1.12.6
+          tofu_wrapper: false
+      - run: tofu fmt -check -recursive
+      - run: tofu init -backend=false -lockfile=readonly
+      - run: tofu validate
+      - run: python3 -m unittest discover -s ../../scripts -p 'test_*.py'
+
+  plan:
+    needs: validate
+    # Public/fork PRs get validation only. Live previews use read-only credentials.
+    if: >-
+      vars.DNS_PLAN_ENABLED == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name != 'workflow_dispatch' || inputs.operation == 'plan')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        domain: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.domain)) || fromJSON('["maheshrijal.com","mrjl.dev"]') }}
+    defaults:
+      run:
+        working-directory: domains/${{ matrix.domain }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_READ_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
+        with:
+          tofu_version: 1.12.6
+          tofu_wrapper: false
+      - run: tofu init -lockfile=readonly
+      - name: Plan without writing a lock using read-only R2 access
+        id: plan
+        shell: bash
+        run: |
+          set +e
+          tofu plan -lock=false -detailed-exitcode -out=review.tfplan -no-color > plan.txt 2>&1
+          code=$?
+          set -e
+          cat plan.txt
+          echo "exitcode=$code" >> "$GITHUB_OUTPUT"
+          if [[ "$code" != 0 && "$code" != 2 ]]; then exit "$code"; fi
+          tofu show -json review.tfplan > review.plan.json
+          python3 ../../scripts/review-plan.py review.plan.json
+          {
+            echo '### ${{ matrix.domain }}'
+            echo '```text'
+            cat plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail scheduled check when drift is found
+        if: github.event_name == 'schedule' && steps.plan.outputs.exitcode == '2'
+        run: exit 1
+
+  apply:
+    needs: validate
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+      inputs.operation != 'plan' && inputs.fingerprint != '' && vars.DNS_APPLY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    # Configure required reviewers and main-only deployment branches before enabling.
+    environment: dns-${{ inputs.domain }}
+    concurrency:
+      group: dns-write-${{ inputs.domain }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: domains/${{ inputs.domain }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_TOKEN }}
+      REVIEWED_FINGERPRINT: ${{ inputs.fingerprint }}
+      DNS_DOMAIN: ${{ inputs.domain }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
+        with:
+          tofu_version: 1.12.6
+          tofu_wrapper: false
+      - run: tofu init -lockfile=readonly
+      - name: Replan and require the reviewed fingerprint
+        shell: bash
+        run: |
+          tofu plan -lock-timeout=5m -out=approved.tfplan -no-color
+          tofu show -json approved.tfplan > approved.plan.json
+          python3 ../../scripts/review-plan.py approved.plan.json --expect "$REVIEWED_FINGERPRINT"
+      - name: Back up previous state
+        run: bash ../../scripts/backup-state.sh "$DNS_DOMAIN" before
+      - name: Apply the checked saved plan
+        run: tofu apply -lock-timeout=5m -no-color approved.tfplan
+      - name: Back up resulting state
+        if: success() || failure()
+        run: bash ../../scripts/backup-state.sh "$DNS_DOMAIN" after
+      - name: Verify no remaining drift
+        run: tofu plan -lock-timeout=5m -detailed-exitcode -no-color

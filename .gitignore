@@ -32,3 +32,14 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Saved plans and local migration material
+*.tfplan
+*.plan.json
+.planfile
+backups/
+
+__pycache__/
+
+# One-time local adoption files; never ship imports with the configuration.
+**/migration_imports.tf

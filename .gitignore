@@ -40,3 +40,6 @@ terraform.rc
 backups/
 
 __pycache__/
+
+# One-time local adoption files; never ship imports with the configuration.
+**/migration_imports.tf

@@ -4,7 +4,7 @@ OpenTofu manages existing Cloudflare DNS records for `maheshrijal.com` and
 `mrjl.dev`. Each domain is an independent root configuration with its own state
 and lock in the private Cloudflare R2 bucket `tfstate`:
 
-| Root directory | R2 state key | Baseline imports |
+| Root directory | R2 state key | Managed records |
 | --- | --- | --- |
 | `domains/maheshrijal.com` | `dns/maheshrijal.com.tfstate` | 25 |
 | `domains/mrjl.dev` | `dns/mrjl.dev.tfstate` | 14 |
@@ -16,10 +16,10 @@ include Linux amd64 (Actions) and macOS arm64 checksums.
 ## Ownership
 
 The baseline was exported from live Cloudflare DNS with `cf` on 2026-09-06.
-It preserves content, proxy settings, TTLs, priorities and comments. Import
-blocks identify existing record IDs, including records recreated since the
-old Terraform Cloud state was used. Keep the blocks after import; they are
-idempotent for records already in state.
+It preserves content, proxy settings, TTLs, priorities and comments. The tracked HCL contains ordinary `cloudflare_record` resource definitions.
+One-time import blocks are kept privately with the migration exports, outside
+tracked files. Once adopted, the R2 state holds the record IDs; no import blocks
+are needed in the repo.
 
 These records are marked `read_only` by Cloudflare and remain managed through
 their owning services, not as `cloudflare_record` resources:
@@ -102,21 +102,35 @@ plan files are not uploaded as artifacts. Do not place private secrets in record
    the same key fails to acquire it. Confirm normal release allows retry. Review
    and approve cleanup of only those test objects. This test is a prerequisite,
    not something `init -backend=false` or validation proves.
-5. Merge the reviewed configuration PR after approval. Run the **DNS** workflow
-   manually on `main`, operation **plan**, for one domain. Review the full plan:
-   it must show **25 imports** or **14 imports**, and **0 add, 0 change, 0 destroy**.
-   Record the commit and fingerprint from the run summary. Imports may expose
-   provider normalization differences; resolve those before continuing.
-6. After explicit approval of that plan, enable `DNS_APPLY_ENABLED=true`, then
-   dispatch **import** for that domain at the same main commit and paste its
-   fingerprint. Approve the protected environment deployment. The workflow
-   rejects any DNS mutation, unexpected import count, or changed fingerprint,
-   backs up any existing state, then applies the saved plan with state locking.
-   Only state is established; live records must not change. Repeat for the other
-   domain after checking the first.
-7. Verify the resulting plan is empty, and compare another `cf` export with the
-   pre-import baseline. Check authoritative/public DNS and the website/mail paths
-   separately: a clean OpenTofu plan alone does not prove resolution or delivery.
+5. Adopt records locally, one domain at a time, using the private import file
+   saved alongside the exports. Copy it into that domain's root temporarily as
+   `migration_imports.tf` (gitignored). The private files are currently
+   `backups/2026-09-06/<domain>.imports.tf`; retain them with the private backups.
+   They are not distributed through GitHub. Recheck IDs against live DNS before
+   use if adoption is delayed. For example, from the repo root:
+
+   ```sh
+   cp backups/2026-09-06/maheshrijal.com.imports.tf domains/maheshrijal.com/migration_imports.tf
+   tofu -chdir=domains/maheshrijal.com init -lockfile=readonly
+   tofu -chdir=domains/maheshrijal.com plan -lock-timeout=5m -out=import.tfplan
+   tofu -chdir=domains/maheshrijal.com show -json import.tfplan > backups/maheshrijal.com.plan.json
+   GITHUB_SHA=$(git rev-parse HEAD) python3 scripts/review-plan.py backups/maheshrijal.com.plan.json --imports 25
+   ```
+
+   Review the full plan: **25 imports** for `maheshrijal.com`, or **14 imports**
+   for `mrjl.dev`, and **0 add, 0 change, 0 destroy**. The guard rejects any
+   resource mutation or unexpected import count. Do not run GHA applies before
+   adoption: without state or the temporary import file, records appear new.
+6. After explicit approval of that exact plan, back up any existing state (there
+   is none for a fresh key) and apply the saved local `import.tfplan` with locking.
+   Capture a private resulting state backup immediately. Remove only the
+   temporary `migration_imports.tf` and saved plan from the root after successful
+   adoption; the private migration copy may be retained with the backups.
+7. Run a clean plan using only the tracked resource HCL. Compare another `cf`
+   export with the pre-import baseline and check authoritative/public DNS and
+   website/mail paths separately. Repeat for the other domain. A clean plan alone
+   does not prove resolution or delivery. After merge approval and completed
+   adoption, enable the GHA plan/apply variables and protected environments.
 
 Local read-only plan equivalent (run separately for each domain):
 
@@ -159,8 +173,9 @@ backups/<domain>/<UTC timestamp>-<run ID>-<attempt>-before.tfstate
 backups/<domain>/<UTC timestamp>-<run ID>-<attempt>-after.tfstate
 ```
 
-The first import has no preexisting state to copy. Failed applies attempt an
-after backup too. Retain these objects; do not add lifecycle deletion without
+The first local adoption has no preexisting state to copy; save its resulting
+state privately. Workflow applies require an existing state object and attempt
+an after backup even if an apply fails. Retain these objects; do not add lifecycle deletion without
 an explicit retention decision. Same-bucket copies protect against accidental
 state replacement, not loss of the bucket or compromised bucket credentials.
 Keep an independent private export before migrations and recovery operations.
